@@ -96,5 +96,7 @@ export function getInitQueryOption<TData, TCode extends InitialDataCode>(
     queryKey: ['key'],
     queryFn: () => data,
   }
-  return defaultOption as typeof defaultOption & InitialDataOption<TData, TCode>
+  return defaultOption as TCode extends `${'p' | 'r'}000000`
+    ? typeof defaultOption
+    : typeof defaultOption & InitialDataOption<TData, TCode>
 }
