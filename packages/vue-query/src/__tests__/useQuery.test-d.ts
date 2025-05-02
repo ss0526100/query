@@ -474,6 +474,17 @@ describe('useQuery', () => {
       expectTypeOf(r000010Data).toEqualTypeOf<{ type: 'hello' }>()
       expectTypeOf(r000011Data).toEqualTypeOf<{ type: 'hello' }>()
     })
+
+    it('data should not have undefined when initialData is provided', () => {
+      const { data } = reactive(
+        useQuery({
+          queryKey: ['query-key'],
+          initialData: 42,
+        }),
+      )
+
+      expectTypeOf(data).toEqualTypeOf<number>()
+    })
   })
 
   describe('custom composable', () => {
