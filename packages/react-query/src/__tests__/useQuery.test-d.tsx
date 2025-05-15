@@ -1,7 +1,7 @@
 import { describe, expectTypeOf, it } from 'vitest'
+import { queryKey } from '@tanstack/query-test-utils'
 import { useQuery } from '../useQuery'
 import { queryOptions } from '../queryOptions'
-import { queryKey } from './utils'
 import type { OmitKeyof, QueryFunction, UseQueryOptions } from '..'
 
 describe('useQuery', () => {
@@ -152,7 +152,7 @@ describe('useQuery', () => {
   )
   expectTypeOf(testFuncStyle.data).toEqualTypeOf<boolean | undefined>()
 
-  it('should return the correct states for a successful query', async () => {
+  it('should return the correct states for a successful query', () => {
     const state = useQuery<string, Error>({
       queryKey: key,
       queryFn: () => Promise.resolve('test'),
@@ -277,6 +277,22 @@ describe('useQuery', () => {
         }
       })
 
+      // eslint-disable-next-line vitest/expect-expect
+      it('TData should depend from only arguments, not the result', () => {
+        // @ts-expect-error
+        const result: UseQueryResult<{ wow: string }> = useQuery({
+          queryKey: ['key'],
+          queryFn: () => {
+            return {
+              wow: true,
+            }
+          },
+          initialData: () => undefined as { wow: boolean } | undefined,
+        })
+
+        void result
+      })
+
       it('data should not have undefined when initialData is provided', () => {
         const { data } = useQuery({
           queryKey: ['query-key'],
@@ -308,11 +324,14 @@ describe('useQuery', () => {
     })
 
     describe('structuralSharing', () => {
-      it('should restrict to same types', () => {
+      it('should be able to use structuralSharing with unknown types', () => {
+        // https://github.com/TanStack/query/issues/6525#issuecomment-1938411343
         useQuery({
           queryKey: ['key'],
           queryFn: () => 5,
-          structuralSharing: (_oldData, newData) => {
+          structuralSharing: (oldData, newData) => {
+            expectTypeOf(oldData).toBeUnknown()
+            expectTypeOf(newData).toBeUnknown()
             return newData
           },
         })

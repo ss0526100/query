@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as React from 'react'
-import { QueryCache, hashKey } from '@tanstack/query-core'
 import {
   PERSISTER_KEY_PREFIX,
-  experimental_createPersister,
+  experimental_createQueryPersister,
 } from '@tanstack/query-persist-client-core'
-import { useQuery } from '..'
-import { createQueryClient, queryKey, renderWithClient, sleep } from './utils'
+import { queryKey, sleep } from '@tanstack/query-test-utils'
+import { QueryCache, QueryClient, hashKey, useQuery } from '..'
+import { renderWithClient } from './utils'
 
 describe('fine grained persister', () => {
   beforeEach(() => {
@@ -18,7 +18,7 @@ describe('fine grained persister', () => {
   })
 
   const queryCache = new QueryCache()
-  const queryClient = createQueryClient({ queryCache })
+  const queryClient = new QueryClient({ queryCache })
 
   it('should restore query state from persister and not refetch', async () => {
     const key = queryKey()
@@ -57,9 +57,9 @@ describe('fine grained persister', () => {
       const { data } = useQuery({
         queryKey: key,
         queryFn: spy,
-        persister: experimental_createPersister({
+        persister: experimental_createQueryPersister({
           storage,
-        }),
+        }).persisterFn,
         staleTime: 5000,
       })
 
@@ -113,9 +113,9 @@ describe('fine grained persister', () => {
       const { data } = useQuery({
         queryKey: key,
         queryFn: spy,
-        persister: experimental_createPersister({
+        persister: experimental_createQueryPersister({
           storage,
-        }),
+        }).persisterFn,
       })
 
       return <div ref={(value) => setRef(value)}>{data}</div>
@@ -152,9 +152,9 @@ describe('fine grained persister', () => {
       const { data } = useQuery({
         queryKey: key,
         queryFn: spy,
-        persister: experimental_createPersister({
+        persister: experimental_createQueryPersister({
           storage,
-        }),
+        }).persisterFn,
       })
 
       return <div ref={(value) => setRef(value)}>{data}</div>
