@@ -62,21 +62,21 @@ mutate(variables, {
 - `networkMode: 'online' | 'always' | 'offlineFirst'`
   - Optional
   - defaults to `'online'`
-  - see [Network Mode](../guides/network-mode.md) for more information.
+  - see [Network Mode](../../guides/network-mode.md) for more information.
 - `onMutate: (variables: TVariables) => Promise<TContext | void> | TContext | void`
   - Optional
   - This function will fire before the mutation function is fired and is passed the same variables the mutation function would receive
   - Useful to perform optimistic updates to a resource in hopes that the mutation succeeds
   - The value returned from this function will be passed to both the `onError` and `onSettled` functions in the event of a mutation failure and can be useful for rolling back optimistic updates.
-- `onSuccess: (data: TData, variables: TVariables, context: TContext) => Promise<unknown> | unknown`
+- `onSuccess: (data: TData, variables: TVariables, context: TContext) => Promise<void> | void`
   - Optional
   - This function will fire when the mutation is successful and will be passed the mutation's result.
   - If a promise is returned, it will be awaited and resolved before proceeding
-- `onError: (err: TError, variables: TVariables, context?: TContext) => Promise<unknown> | unknown`
+- `onError: (err: TError, variables: TVariables, context?: TContext) => Promise<void> | void`
   - Optional
   - This function will fire if the mutation encounters an error and will be passed the error.
   - If a promise is returned, it will be awaited and resolved before proceeding
-- `onSettled: (data: TData, error: TError, variables: TVariables, context?: TContext) => Promise<unknown> | unknown`
+- `onSettled: (data: TData, error: TError, variables: TVariables, context?: TContext) => Promise<void> | void`
   - Optional
   - This function will fire when the mutation is either successfully fetched or encounters an error and be passed either the data or error
   - If a promise is returned, it will be awaited and resolved before proceeding
@@ -137,7 +137,7 @@ mutate(variables, {
 - `isIdle`, `isPending`, `isSuccess`, `isError`: boolean variables derived from `status`
 - `isPaused: boolean`
   - will be `true` if the mutation has been `paused`
-  - see [Network Mode](../guides/network-mode.md) for more information.
+  - see [Network Mode](../../guides/network-mode.md) for more information.
 - `data: undefined | unknown`
   - Defaults to `undefined`
   - The last successfully resolved data for the mutation.
