@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, waitFor } from '@solidjs/testing-library'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { fireEvent, render } from '@solidjs/testing-library'
 import {
   ErrorBoundary,
   Show,
@@ -19,6 +19,14 @@ import {
 import type { InfiniteData, UseInfiniteQueryResult, UseQueryResult } from '..'
 
 describe("useQuery's in Suspense mode", () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   const queryCache = new QueryCache()
   const queryClient = new QueryClient({ queryCache })
 
@@ -67,10 +75,12 @@ describe("useQuery's in Suspense mode", () => {
       </QueryClientProvider>
     ))
 
-    await waitFor(() => rendered.getByText('data: 1'))
-    fireEvent.click(rendered.getByLabelText('toggle'))
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('data: 1')).toBeInTheDocument()
 
-    await waitFor(() => rendered.getByText('data: 2'))
+    fireEvent.click(rendered.getByLabelText('toggle'))
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('data: 2')).toBeInTheDocument()
 
     expect(renders).toBe(4)
     expect(states.length).toBe(4)
@@ -115,8 +125,8 @@ describe("useQuery's in Suspense mode", () => {
       </QueryClientProvider>
     ))
 
-    await waitFor(() => rendered.getByText('data: 1'))
-
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('data: 1')).toBeInTheDocument()
     // eslint-disable-next-line cspell/spellchecker
     // TODO(lukemurray): in react this is 1 in solid this is 2 because suspense
     // occurs on read.
@@ -127,8 +137,8 @@ describe("useQuery's in Suspense mode", () => {
     })
 
     fireEvent.click(rendered.getByText('next'))
-    await waitFor(() => rendered.getByText('data: 2'))
-
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('data: 2')).toBeInTheDocument()
     // eslint-disable-next-line cspell/spellchecker
     // TODO(lukemurray): in react this is 2 and in solid it is 4
     expect(states.length).toBe(4)
@@ -161,7 +171,8 @@ describe("useQuery's in Suspense mode", () => {
       </QueryClientProvider>
     ))
 
-    await waitFor(() => rendered.getByText('rendered'))
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('rendered')).toBeInTheDocument()
 
     expect(queryFn).toHaveBeenCalledTimes(1)
   })
@@ -205,13 +216,14 @@ describe("useQuery's in Suspense mode", () => {
     expect(queryCache.find({ queryKey: key })).toBeFalsy()
 
     fireEvent.click(rendered.getByLabelText('toggle'))
-    await waitFor(() => rendered.getByText('rendered'))
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('rendered')).toBeInTheDocument()
 
     expect(queryCache.find({ queryKey: key })?.getObserversCount()).toBe(1)
 
     fireEvent.click(rendered.getByLabelText('toggle'))
-
     expect(rendered.queryByText('rendered')).toBeNull()
+
     expect(queryCache.find({ queryKey: key })?.getObserversCount()).toBe(0)
   })
 
@@ -268,21 +280,14 @@ describe("useQuery's in Suspense mode", () => {
       </QueryClientProvider>
     ))
 
-    await waitFor(() =>
-      expect(rendered.getByText('Loading...')).toBeInTheDocument(),
-    )
-
-    await waitFor(() =>
-      expect(rendered.getByText('error boundary')).toBeInTheDocument(),
-    )
-
-    await waitFor(() => expect(rendered.getByText('retry')).toBeInTheDocument())
+    expect(rendered.getByText('Loading...')).toBeInTheDocument()
+    await vi.advanceTimersByTimeAsync(100)
+    expect(rendered.getByText('error boundary')).toBeInTheDocument()
+    expect(rendered.getByText('retry')).toBeInTheDocument()
 
     fireEvent.click(rendered.getByText('retry'))
-
-    await waitFor(() =>
-      expect(rendered.getByText('rendered')).toBeInTheDocument(),
-    )
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('rendered')).toBeInTheDocument()
   })
 
   it('should retry fetch if the reset error boundary has been reset', async () => {
@@ -336,23 +341,21 @@ describe("useQuery's in Suspense mode", () => {
       </QueryClientProvider>
     ))
 
-    await waitFor(() =>
-      expect(rendered.getByText('Loading...')).toBeInTheDocument(),
-    )
-    await waitFor(() =>
-      expect(rendered.getByText('error boundary')).toBeInTheDocument(),
-    )
-    await waitFor(() => expect(rendered.getByText('retry')).toBeInTheDocument())
+    expect(rendered.getByText('Loading...')).toBeInTheDocument()
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('error boundary')).toBeInTheDocument()
+    expect(rendered.getByText('retry')).toBeInTheDocument()
+
     fireEvent.click(rendered.getByText('retry'))
-    await waitFor(() =>
-      expect(rendered.getByText('error boundary')).toBeInTheDocument(),
-    )
-    await waitFor(() => expect(rendered.getByText('retry')).toBeInTheDocument())
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('error boundary')).toBeInTheDocument()
+    expect(rendered.getByText('retry')).toBeInTheDocument()
+
     succeed = true
+
     fireEvent.click(rendered.getByText('retry'))
-    await waitFor(() =>
-      expect(rendered.getByText('rendered')).toBeInTheDocument(),
-    )
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('rendered')).toBeInTheDocument()
   })
 
   it('should refetch when re-mounting', async () => {
@@ -402,28 +405,22 @@ describe("useQuery's in Suspense mode", () => {
       </QueryClientProvider>
     ))
 
-    await waitFor(() =>
-      expect(rendered.getByText('Loading...')).toBeInTheDocument(),
-    )
-    await waitFor(() =>
-      expect(rendered.getByText('data: 1')).toBeInTheDocument(),
-    )
-    await waitFor(() =>
-      expect(rendered.getByText('fetching: false')).toBeInTheDocument(),
-    )
-    await waitFor(() => expect(rendered.getByText('hide')).toBeInTheDocument())
+    expect(rendered.getByText('Loading...')).toBeInTheDocument()
+    await vi.advanceTimersByTimeAsync(100)
+    expect(rendered.getByText('data: 1')).toBeInTheDocument()
+    expect(rendered.getByText('fetching: false')).toBeInTheDocument()
+    expect(rendered.getByText('hide')).toBeInTheDocument()
+
     fireEvent.click(rendered.getByText('hide'))
-    await waitFor(() => expect(rendered.getByText('show')).toBeInTheDocument())
+    await vi.advanceTimersByTimeAsync(100)
+    expect(rendered.getByText('show')).toBeInTheDocument()
+
     fireEvent.click(rendered.getByText('show'))
-    await waitFor(() =>
-      expect(rendered.getByText('fetching: true')).toBeInTheDocument(),
-    )
-    await waitFor(() =>
-      expect(rendered.getByText('data: 2')).toBeInTheDocument(),
-    )
-    await waitFor(() =>
-      expect(rendered.getByText('fetching: false')).toBeInTheDocument(),
-    )
+    await vi.advanceTimersByTimeAsync(0)
+    expect(rendered.getByText('fetching: true')).toBeInTheDocument()
+    await vi.advanceTimersByTimeAsync(100)
+    expect(rendered.getByText('data: 2')).toBeInTheDocument()
+    expect(rendered.getByText('fetching: false')).toBeInTheDocument()
   })
 
   it('should suspend when switching to a new query', async () => {
@@ -467,19 +464,14 @@ describe("useQuery's in Suspense mode", () => {
       </QueryClientProvider>
     ))
 
-    await waitFor(() =>
-      expect(rendered.getByText('Loading...')).toBeInTheDocument(),
-    )
-    await waitFor(() =>
-      expect(rendered.getByText(`data: ${key1}`)).toBeInTheDocument(),
-    )
+    expect(rendered.getByText('Loading...')).toBeInTheDocument()
+    await vi.advanceTimersByTimeAsync(100)
+    expect(rendered.getByText(`data: ${key1}`)).toBeInTheDocument()
+
     fireEvent.click(rendered.getByText('switch'))
-    await waitFor(() =>
-      expect(rendered.getByText('Loading...')).toBeInTheDocument(),
-    )
-    await waitFor(() =>
-      expect(rendered.getByText(`data: ${key2}`)).toBeInTheDocument(),
-    )
+    expect(rendered.getByText('Loading...')).toBeInTheDocument()
+    await vi.advanceTimersByTimeAsync(100)
+    expect(rendered.getByText(`data: ${key2}`)).toBeInTheDocument()
   })
 
   it('should throw errors to the error boundary by default', async () => {
@@ -530,12 +522,9 @@ describe("useQuery's in Suspense mode", () => {
       </QueryClientProvider>
     ))
 
-    await waitFor(() =>
-      expect(rendered.getByText('Loading...')).toBeInTheDocument(),
-    )
-    await waitFor(() =>
-      expect(rendered.getByText('error boundary')).toBeInTheDocument(),
-    )
+    expect(rendered.getByText('Loading...')).toBeInTheDocument()
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('error boundary')).toBeInTheDocument()
 
     consoleMock.mockRestore()
   })
@@ -584,12 +573,9 @@ describe("useQuery's in Suspense mode", () => {
       </QueryClientProvider>
     ))
 
-    await waitFor(() =>
-      expect(rendered.getByText('Loading...')).toBeInTheDocument(),
-    )
-    await waitFor(() =>
-      expect(rendered.getByText('rendered')).toBeInTheDocument(),
-    )
+    expect(rendered.getByText('Loading...')).toBeInTheDocument()
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('rendered')).toBeInTheDocument()
   })
 
   it('should throw errors to the error boundary when a throwOnError function returns true', async () => {
@@ -640,12 +626,9 @@ describe("useQuery's in Suspense mode", () => {
       </QueryClientProvider>
     ))
 
-    await waitFor(() =>
-      expect(rendered.getByText('Loading...')).toBeInTheDocument(),
-    )
-    await waitFor(() =>
-      expect(rendered.getByText('error boundary')).toBeInTheDocument(),
-    )
+    expect(rendered.getByText('Loading...')).toBeInTheDocument()
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('error boundary')).toBeInTheDocument()
 
     consoleMock.mockRestore()
   })
@@ -696,12 +679,9 @@ describe("useQuery's in Suspense mode", () => {
       </QueryClientProvider>
     ))
 
-    await waitFor(() =>
-      expect(rendered.getByText('Loading...')).toBeInTheDocument(),
-    )
-    await waitFor(() =>
-      expect(rendered.getByText('rendered')).toBeInTheDocument(),
-    )
+    expect(rendered.getByText('Loading...')).toBeInTheDocument()
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('rendered')).toBeInTheDocument()
   })
 
   it('should not call the queryFn when not enabled', async () => {
@@ -739,13 +719,11 @@ describe("useQuery's in Suspense mode", () => {
     ))
 
     expect(queryFn).toHaveBeenCalledTimes(0)
-    await sleep(5)
+
+    await vi.advanceTimersByTimeAsync(10)
     fireEvent.click(rendered.getByRole('button', { name: /fire/i }))
-
-    await waitFor(() => {
-      expect(rendered.getByRole('heading').textContent).toBe('23')
-    })
-
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByRole('heading').textContent).toBe('23')
     expect(queryFn).toHaveBeenCalledTimes(1)
   })
 
@@ -806,22 +784,19 @@ describe("useQuery's in Suspense mode", () => {
     ))
 
     // render suspense fallback (Loading...)
-    await waitFor(() =>
-      expect(rendered.getByText('Loading...')).toBeInTheDocument(),
-    )
+    expect(rendered.getByText('Loading...')).toBeInTheDocument()
     // resolve promise -> render Page (rendered)
-    await waitFor(() =>
-      expect(rendered.getByText('rendered')).toBeInTheDocument(),
-    )
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('rendered')).toBeInTheDocument()
 
     // change query key
     succeed = false
     // reset query -> and throw error
+
     fireEvent.click(rendered.getByLabelText('fail'))
     // render error boundary fallback (error boundary)
-    await waitFor(() =>
-      expect(rendered.getByText('error boundary')).toBeInTheDocument(),
-    )
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('error boundary')).toBeInTheDocument()
 
     consoleMock.mockRestore()
   })
@@ -876,22 +851,19 @@ describe("useQuery's in Suspense mode", () => {
     ))
 
     // render suspense fallback (Loading...)
-    await waitFor(() =>
-      expect(rendered.getByText('Loading...')).toBeInTheDocument(),
-    )
+    expect(rendered.getByText('Loading...')).toBeInTheDocument()
     // resolve promise -> render Page (rendered)
-    await waitFor(() =>
-      expect(rendered.getByText('rendered')).toBeInTheDocument(),
-    )
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('rendered')).toBeInTheDocument()
 
     // change promise result to error
     succeed = false
     // change query key
+
     fireEvent.click(rendered.getByLabelText('fail'))
     // render error boundary fallback (error boundary)
-    await waitFor(() =>
-      expect(rendered.getByText('error boundary')).toBeInTheDocument(),
-    )
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('error boundary')).toBeInTheDocument()
 
     consoleMock.mockRestore()
   })
@@ -948,22 +920,16 @@ describe("useQuery's in Suspense mode", () => {
     ))
 
     // render empty data with 'rendered' when enabled is false
-    await waitFor(() =>
-      expect(rendered.getByText('rendered')).toBeInTheDocument(),
-    )
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('rendered')).toBeInTheDocument()
 
     // change enabled to true
     fireEvent.click(rendered.getByLabelText('fail'))
-
     // render pending fallback
-    await waitFor(() =>
-      expect(rendered.getByText('Loading...')).toBeInTheDocument(),
-    )
-
+    expect(rendered.getByText('Loading...')).toBeInTheDocument()
     // render error boundary fallback (error boundary)
-    await waitFor(() =>
-      expect(rendered.getByText('error boundary')).toBeInTheDocument(),
-    )
+    await vi.advanceTimersByTimeAsync(10)
+    expect(rendered.getByText('error boundary')).toBeInTheDocument()
 
     consoleMock.mockRestore()
   })
@@ -1007,13 +973,11 @@ describe("useQuery's in Suspense mode", () => {
       </QueryClientProvider>
     ))
 
-    await waitFor(() =>
-      expect(state).toMatchObject({
-        data: 1,
-        status: 'success',
-      }),
-    )
-
+    await vi.advanceTimersByTimeAsync(10)
+    expect(state).toMatchObject({
+      data: 1,
+      status: 'success',
+    })
     expect(renders).toBe(2)
     expect(rendered.queryByText('rendered')).not.toBeNull()
   })
