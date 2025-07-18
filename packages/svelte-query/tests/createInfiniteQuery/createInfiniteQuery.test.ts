@@ -24,9 +24,8 @@ describe('createInfiniteQuery', () => {
       },
     })
 
-    await vi.waitFor(() => {
-      expect(rendered.queryByText('Status: success')).toBeInTheDocument()
-    })
+    await vi.advanceTimersByTimeAsync(0)
+    expect(rendered.queryByText('Status: success')).toBeInTheDocument()
 
     const states = get(statesStore)
 
@@ -62,6 +61,7 @@ describe('createInfiniteQuery', () => {
       isRefetching: false,
       isStale: true,
       isSuccess: false,
+      isEnabled: true,
       refetch: expect.any(Function),
       status: 'pending',
       fetchStatus: 'fetching',
@@ -98,6 +98,7 @@ describe('createInfiniteQuery', () => {
       isRefetching: false,
       isStale: true,
       isSuccess: true,
+      isEnabled: true,
       refetch: expect.any(Function),
       status: 'success',
       fetchStatus: 'idle',
@@ -114,9 +115,8 @@ describe('createInfiniteQuery', () => {
       },
     })
 
-    await vi.waitFor(() => {
-      expect(rendered.queryByText('count: 1')).toBeInTheDocument()
-    })
+    await vi.advanceTimersByTimeAsync(0)
+    expect(rendered.queryByText('count: 1')).toBeInTheDocument()
 
     const states = get(statesStore)
 

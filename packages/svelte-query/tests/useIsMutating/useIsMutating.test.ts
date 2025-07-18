@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { fireEvent, render } from '@testing-library/svelte'
 import BaseExample from './BaseExample.svelte'
 
-describe('useIsFetching', () => {
+describe('useIsMutating', () => {
   beforeEach(() => {
     vi.useFakeTimers()
   })
@@ -11,18 +11,15 @@ describe('useIsFetching', () => {
     vi.useRealTimers()
   })
 
-  test('should update as queries start and stop fetching', async () => {
+  test('should update as queries start and stop mutating', async () => {
     const rendered = render(BaseExample)
 
-    await vi.waitFor(() =>
-      expect(rendered.getByText('isMutating: 0')).toBeInTheDocument(),
-    )
+    expect(rendered.getByText('isMutating: 0')).toBeInTheDocument()
+
     fireEvent.click(rendered.getByRole('button', { name: /Trigger/i }))
-    await vi.waitFor(() =>
-      expect(rendered.getByText('isMutating: 1')).toBeInTheDocument(),
-    )
-    await vi.waitFor(() =>
-      expect(rendered.getByText('isMutating: 0')).toBeInTheDocument(),
-    )
+    await vi.advanceTimersByTimeAsync(0)
+    expect(rendered.getByText('isMutating: 1')).toBeInTheDocument()
+    await vi.advanceTimersByTimeAsync(6)
+    expect(rendered.getByText('isMutating: 0')).toBeInTheDocument()
   })
 })
